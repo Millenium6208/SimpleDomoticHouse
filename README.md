@@ -4,11 +4,17 @@ A simple domotic house project made with Arduino UNO R3.
 You can find a short video demonstrating this project here: https://youtu.be/EtnrSQTw_zk
 
 ### Description
-The house always (unless you turn off the display) shows the outdoor temperature (°C) and humidity (%).
+The house always (unless you turn off the display) shows the outdoor temperature (°C or °F) and humidity (%).
 
 During the day you can manually control the house by opening/closing the door, turning on/off the display and convert Celsius degrees to Fahrenheit and viceversa.
 When the night is detected the door closes and the lights turn on automatically, the door control is disabled as a security but you can still control the display.
 When the day comes again the "night mode" gets disabled and all controls are available again.
+
+To control the house, use the following buttons on remote:
+- Power Button: turn on/off display
+- Down Arrow: close the door
+- Up Arrow: open the door
+- "0" Button: change temperature from Celsius to Fahrenheit and viceversa
 
 The schematics and the CAD models can be found in "resources" folder.
 

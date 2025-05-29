@@ -1,6 +1,6 @@
 /*
   Author:   R. Faraoni
-  GitRepo:  
+  GitRepo:  https://github.com/Millenium6208/SimpleDomoticHouse
   File:     SimpleDomoticHouse.ino
   Desc:     A simple domotic house made with Arduino UNO R3.
             The house always (unless you turn off the display) shows the outdoor temperature (°C) and humidity (%).

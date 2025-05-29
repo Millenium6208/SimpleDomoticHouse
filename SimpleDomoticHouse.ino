@@ -2,12 +2,11 @@
   Author:   R. Faraoni
   GitRepo:  https://github.com/Millenium6208/SimpleDomoticHouse
   File:     SimpleDomoticHouse.ino
-  Desc:     A simple domotic house made with Arduino UNO R3.
-            The house always (unless you turn off the display) shows the outdoor temperature (°C) and humidity (%).
-            You can control the house by opening/closing the door and turning on/off the display.
-            When the night has been detected (by a photoresistor), a routine (handled with interrupt) closes the door and
-            turns on all the lights, when the day comes again, another routine opens the door once again and turns 
-            off all the lights. 
+  Desc:     The house always (unless you turn off the display) shows the outdoor temperature (°C or °F) and humidity (%).
+            During the day you can manually control the house by opening/closing the door, turning on/off the display 
+            and convert Celsius degrees to Fahrenheit and viceversa. When the night is detected the door closes and the 
+            lights turn on automatically, the door control is disabled as a security but you can still control the display. 
+            When the day comes again the "night mode" gets disabled and all controls are available again.
   Ver:      3.0
   Date:     2025-05-30
 */
@@ -64,6 +63,7 @@ K     ->  GND
 */
 
 volatile bool isDay = true; // Flag used in interrupt
+bool isCelsius = true; // Displays temp in celsius when true, in fahrenheit when false
 #define DOOR_POSITION_CLOSED 25
 #define DOOR_POSITION_OPENED 130
 #define DHT_SENSOR_TYPE DHT_TYPE_11
@@ -147,33 +147,61 @@ void loop() {
         case 8: // Up arrow on remote
           openDoor();
         break;
+
+        case 9: // 0 on remote
+          isCelsius = !isCelsius;
+          displayTemp();
+        break;
       }
 
       // If none of the previous, read another value
       Receiver.resume();
       delay(100); // Little delay to ensure correct reading
-    }
+  }
   } else { // Executed when it's night
     #ifdef TEST
       // Plot brightess and 
       Serial.println(brightness());
       Serial.print("IR: ");Serial.println(translateIR());
     #endif
+    
+    closeDoor();
+    gardenOn(); // Turn on garden lights
 
     while (digitalRead(2) == 0) { // Wait for the day
       #ifdef TEST
         Serial.println("Night while loop.");
       #endif
+      if (Receiver.decode(&remote)) {
+        switch (translateIR()) {
+          case 0: // Power button on remote
+            if (display) {
+              lcd.noDisplay(); // Turn off display
+            }
+            else {
+              lcd.display(); // Turn off display
+            }
+            display = !display; // Negate display state
+          break;
+
+          case 9: // 0 on remote
+            isCelsius = !isCelsius;
+            displayTemp();
+          break;
+        }
+  
+        // If none of the previous, read another value
+        Receiver.resume();
+        delay(100); // Little delay to ensure correct reading
+      }
       
-      gardenOn(); // Turn on garden lights
       displayTemp(); // Display Temp and Hum
     }
 
     // When day comes, open door, turn off lights and go back to loop()
     openDoor(); // Open the door
     gardenOff(); // Turn off garden lights
-
-
+    delay(20);
   }
 }
 
@@ -236,8 +264,8 @@ int translateIR()
 static bool environmentTempHum(float *temperature, float *humidity) {
   static unsigned long counter = millis();
 
-  // Return every 10 seconds
-  if (millis() - counter > 10000ul) {
+  // Return every 2 seconds
+  if (millis() - counter > 2000ul) {
     if (tempHum.measure(temperature, humidity) == true) {
       counter = millis(); // Update timer
       return true;
@@ -257,9 +285,15 @@ void displayTemp() {
     lcd.setCursor(0, 0);
     lcd.print("Temp:");
     lcd.setCursor(6, 0);
-    lcd.print(round(temperature));
-    lcd.setCursor(9, 0);
-    lcd.print("C");
+    if (isCelsius) { // Print the temperature in Celsius degrees
+      lcd.print(round(temperature));
+      lcd.setCursor(9, 0);
+      lcd.print("C");
+    } else { // Print the temperature in Fahrenheit degrees
+      lcd.print(round(temperature) * 9/5 + 32);
+      lcd.setCursor(9, 0);
+      lcd.print("F");
+    }
 
     // Humidity on row 2 [1]
     lcd.setCursor(0, 1);

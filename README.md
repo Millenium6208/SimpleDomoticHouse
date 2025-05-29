@@ -1,6 +1,8 @@
 # Simple Domotic House
 A simple domotic house project made with Arduino UNO R3.
 
+You can find a short video demonstrating this project here: https://youtu.be/EtnrSQTw_zk
+
 ### Description
 The house always (unless you turn off the display) shows the outdoor temperature (°C) and humidity (%).
 
